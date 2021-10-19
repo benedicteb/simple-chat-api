@@ -1,10 +1,17 @@
 import express from "express";
 import { v4 as uuidv4 } from "uuid";
 import cors from "cors";
+import sha256 from "crypto-js/sha256";
 
 type SendMessageForm = {
   message: string;
   nick: string;
+};
+
+type Message = {
+  text: string;
+  sender: string;
+  messageID: string;
 };
 
 const PORT = process.env["PORT"] || undefined;
@@ -19,7 +26,7 @@ if (PORT === undefined) {
 const app = express();
 let openConnections: { [key: string]: express.Response } = {};
 
-let messages: string[] = [];
+let messages: Message[] = [];
 
 app.use(cors({ origin: CORS_ALLOWED_ORIGIN }));
 app.use(express.json());
@@ -30,9 +37,11 @@ app.get("/health", (req, res) => {
 
 app.post("/sendMessage", (req, res) => {
   const inputData = req.body as SendMessageForm;
-  messages = [...messages.slice(1), inputData.message];
+  const message = constructMessage(inputData);
 
-  sendMessageToClients(inputData.message);
+  messages = [...messages.slice(1), message];
+
+  sendMessageToClients(message);
 
   res.write("ok");
   res.end();
@@ -46,15 +55,13 @@ app.get("/subscribe", (req, res) => {
   });
   res.flushHeaders();
 
-  // Send stored chats
-  messages.forEach((chat) => {
-    res.write(`id: chat-${Date.now()}\n`);
-    res.write(`event: newChat\n`);
-    res.write(`message: ${chat}\n\n`);
-  });
-
   const clientId = uuidv4();
   openConnections[clientId] = res;
+
+  // Send stored chats
+  messages.forEach((message) => {
+    sendMessage(message, clientId);
+  });
 
   // Remove connection on close
   req.on("close", () => {
@@ -65,14 +72,24 @@ app.get("/subscribe", (req, res) => {
   });
 });
 
-const sendMessageToClients = (chat: string): void => {
-  const messageId = Date.now();
-
+const sendMessageToClients = (message: Message): void => {
   Object.keys(openConnections).forEach((clientId) => {
-    openConnections[clientId].write(
-      `id: chat-${messageId}\nevent: newChat\nmessage: ${chat}\n\n`
-    );
+    sendMessage(message, clientId);
   });
+};
+
+const constructMessage = (form: SendMessageForm): Message => {
+  return {
+    text: form.message,
+    sender: form.nick,
+    messageID: sha256(`${Date.now()}-${form.nick}-${form.message}`).toString(),
+  };
+};
+
+const sendMessage = (message: Message, clientId: string) => {
+  openConnections[clientId].write(
+    `id: chat-${message.messageID}\nevent: messageReceived\nnickname: ${message.sender}\nmessage: ${message.text}\n\n`
+  );
 };
 
 const logActiveClients = () => {
