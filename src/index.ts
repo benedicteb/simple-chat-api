@@ -108,14 +108,16 @@ const constructMessage = (form: SendMessageForm): Message => {
 
 const sendMessage = (message: Message, clientId: string) => {
   openConnections[clientId].write(
-    `id: chat-${message.messageID}\nevent: messageReceived\nnickname: ${message.sender}\ndata: ${message.text}\n\n`
+    `id: ${message.messageID}\nevent: messageReceived\nnickname: ${message.sender}\ndata: ${message.text}\n\n`
   );
 };
 
 const sendKeepAlive = () => {
   Object.keys(openConnections).forEach((clientId) => {
     openConnections[clientId].write(
-      `id: ping-${Date.now()}\nevent: ping\ndata: ok\n\n`
+      `id: ${sha256(
+        `ping-${Date.now()}`
+      ).toString()}\nevent: ping\ndata: ok\n\n`
     );
   });
 
