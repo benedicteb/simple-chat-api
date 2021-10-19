@@ -112,6 +112,16 @@ const sendMessage = (message: Message, clientId: string) => {
   );
 };
 
+const sendKeepAlive = () => {
+  Object.keys(openConnections).forEach((clientId) => {
+    openConnections[clientId].write(
+      `id: ping-${Date.now()}\ntype: ping\ndata: ok\n\n`
+    );
+  });
+
+  setTimeout(sendKeepAlive, 30 * 1000);
+};
+
 const logActiveClients = () => {
   const noOpenConnections = Object.keys(openConnections).length;
   console.log(`Currently ${noOpenConnections} open connections`);
@@ -123,6 +133,7 @@ const init = async () => {
   app.listen(PORT, () => console.log(`Listening at http://localhost:${PORT}`));
 
   logActiveClients();
+  sendKeepAlive();
 };
 
 init();
