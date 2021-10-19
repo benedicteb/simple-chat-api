@@ -15,6 +15,7 @@ type Message = {
 };
 
 const PORT = process.env["PORT"] || undefined;
+const API_CODE = process.env["API_CODE"] || "abc123";
 
 const CORS_ALLOWED_ORIGIN =
   process.env["CORS_ALLOWED_ORIGIN"] || "http://localhost:3001";
@@ -36,6 +37,16 @@ app.get("/health", (req, res) => {
 });
 
 app.post("/sendMessage", (req, res) => {
+  const authorizationCode = req.header("Authorization");
+
+  if (authorizationCode != API_CODE) {
+    res.status(401);
+    res.send("Unauthorized");
+    res.end();
+
+    return;
+  }
+
   const inputData = req.body as SendMessageForm;
   const message = constructMessage(inputData);
 
