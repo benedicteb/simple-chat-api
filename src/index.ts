@@ -48,6 +48,15 @@ app.post("/sendMessage", (req, res) => {
   }
 
   const inputData = req.body as SendMessageForm;
+
+  if (inputData.nick === undefined || inputData.message === undefined) {
+    res.status(400);
+    res.send("Malformed request");
+    res.end();
+
+    return;
+  }
+
   const message = constructMessage(inputData);
 
   messages = [...messages.slice(1), message];
