@@ -75,8 +75,17 @@ const sendMessageToClients = (chat: string): void => {
   });
 };
 
+const logActiveClients = () => {
+  const noOpenConnections = Object.keys(openConnections).length;
+  console.log(`Currently ${noOpenConnections} open connections`);
+
+  setTimeout(logActiveClients, 5 * 1000);
+};
+
 const init = async () => {
   app.listen(PORT, () => console.log(`Listening at http://localhost:${PORT}`));
+
+  logActiveClients();
 };
 
 init();
