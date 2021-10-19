@@ -22,17 +22,20 @@ let openConnections: { [key: string]: express.Response } = {};
 let messages: string[] = [];
 
 app.use(cors({ origin: CORS_ALLOWED_ORIGIN }));
+app.use(express.json());
 
 app.get("/health", (req, res) => {
   res.send("ok");
 });
 
 app.post("/sendMessage", (req, res) => {
-  const inputData = JSON.parse(req.body) as SendMessageForm;
-
+  const inputData = req.body as SendMessageForm;
   messages = [...messages.slice(1), inputData.message];
 
   sendMessageToClients(inputData.message);
+
+  res.write("ok");
+  res.end();
 });
 
 app.get("/subscribe", (req, res) => {
@@ -41,6 +44,7 @@ app.get("/subscribe", (req, res) => {
     Connection: "keep-alive",
     "Cache-Control": "no-cache",
   });
+  res.flushHeaders();
 
   // Send stored chats
   messages.forEach((chat) => {
@@ -54,7 +58,10 @@ app.get("/subscribe", (req, res) => {
 
   // Remove connection on close
   req.on("close", () => {
+    openConnections[clientId].end();
     delete openConnections[clientId];
+
+    console.log(`Dropped client '${clientId}'`);
   });
 });
 
