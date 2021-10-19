@@ -1,7 +1,7 @@
 # simple-chat-api
 
-This is a small service for serving a simple
-chat application.
+This is a small backend service for serving a simple chat application
+using Server-Sent events.
 
 ## Running
 
