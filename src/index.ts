@@ -108,7 +108,9 @@ const constructMessage = (form: SendMessageForm): Message => {
 
 const sendMessage = (message: Message, clientId: string) => {
   openConnections[clientId].write(
-    `id: ${message.messageID}\nevent: messageReceived\nnickname: ${message.sender}\ndata: ${message.text}\n\n`
+    `id: ${message.messageID}\nevent: messageReceived\ndata: ${JSON.stringify(
+      message
+    )}\n\n`
   );
 };
 
