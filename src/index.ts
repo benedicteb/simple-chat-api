@@ -69,7 +69,7 @@ app.post("/sendMessage", (req, res) => {
   res.end();
 });
 
-app.get("/subscribe", (req, res) => {
+app.get("/subscribe/1", (req, res) => {
   res.writeHead(200, {
     "Content-Type": "text/event-stream",
     Connection: "keep-alive",
