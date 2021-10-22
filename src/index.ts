@@ -6,12 +6,14 @@ import sha256 from "crypto-js/sha256";
 type SendMessageForm = {
   message: string;
   nick: string;
+  avatarUrl: string;
 };
 
 type Message = {
   text: string;
   sender: string;
   messageID: string;
+  avatarUrl: string;
 };
 
 const PORT = process.env["PORT"] || undefined;
@@ -102,6 +104,7 @@ const constructMessage = (form: SendMessageForm): Message => {
   return {
     text: form.message,
     sender: form.nick,
+    avatarUrl: form.avatarUrl || "/default_avatar.png",
     messageID: sha256(`${Date.now()}-${form.nick}-${form.message}`).toString(),
   };
 };
