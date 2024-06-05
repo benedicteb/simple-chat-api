@@ -9,8 +9,7 @@
     "dev": "NODE_ENV=development PORT=3000 npm start"
   },
   "engines": {
-    "node": "20.14.0",
-    "npm": "10.8.0"
+    "node": "20"
   },
   "author": "",
   "license": "ISC",
