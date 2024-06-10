@@ -31,7 +31,10 @@ enum EventType {
 const PORT = process.env["PORT"] || undefined;
 const API_CODE = process.env["API_CODE"] || "abc123";
 
-const CORS_ALLOWED_ORIGINS = ["http://localhost:8000"];
+const CORS_ALLOWED_ORIGINS = [
+  "http://localhost:8000",
+  "http://192.168.1.238:8000",
+];
 
 if (process.env["CORS_ALLOWED_ORIGIN"]) {
   CORS_ALLOWED_ORIGINS.push(process.env["CORS_ALLOWED_ORIGIN"]);
