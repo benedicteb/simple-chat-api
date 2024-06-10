@@ -16,6 +16,18 @@ type Message = {
   avatarUrl: string;
 };
 
+type Event = {
+  id: string;
+  name: EventType;
+  data: string;
+};
+
+enum EventType {
+  MESSAGE = "messageReceived",
+  ACTIVE_CLIENTS = "activeClients",
+  PING = "ping",
+}
+
 const PORT = process.env["PORT"] || undefined;
 const API_CODE = process.env["API_CODE"] || "abc123";
 
@@ -85,10 +97,14 @@ app.get("/subscribe/1", (req, res) => {
     sendMessage(message, clientId);
   });
 
+  sendEventToClients(constructActiveClientsEvent());
+
   // Remove connection on close
   req.on("close", () => {
     openConnections[clientId].end();
     delete openConnections[clientId];
+
+    sendEventToClients(constructActiveClientsEvent());
 
     console.log(`Dropped client '${clientId}'`);
   });
@@ -98,6 +114,20 @@ const sendMessageToClients = (message: Message): void => {
   Object.keys(openConnections).forEach((clientId) => {
     sendMessage(message, clientId);
   });
+};
+
+const sendEventToClients = (event: Event): void => {
+  Object.keys(openConnections).forEach((clientId) => {
+    sendEvent(event, clientId);
+  });
+};
+
+const constructActiveClientsEvent = (): Event => {
+  return {
+    id: sha256(`active-clients-${Date.now()}`).toString(),
+    name: EventType.ACTIVE_CLIENTS,
+    data: `${Object.keys(openConnections).length}`,
+  };
 };
 
 const constructMessage = (form: SendMessageForm): Message => {
@@ -114,6 +144,12 @@ const sendMessage = (message: Message, clientId: string) => {
     `id: ${message.messageID}\nevent: messageReceived\ndata: ${JSON.stringify(
       message
     )}\n\n`
+  );
+};
+
+const sendEvent = (event: Event, clientId: string) => {
+  openConnections[clientId].write(
+    `id: ${event.id}\nevent: ${event.name}\ndata: ${event.data}\n\n`
   );
 };
 
